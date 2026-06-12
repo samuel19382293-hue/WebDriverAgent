@@ -1,1 +1,23 @@
-
+name: Build WDA IPA
+  on: workflow_dispatch
+  jobs:
+    build:
+      runs-on: macos-latest
+      steps:
+        - uses: actions/checkout@v4
+        - name: Build WDA
+          run: |
+            xcodebuild build-for-testing \
+              -project WebDriverAgent.xcodeproj \
+              -scheme WebDriverAgentRunner \
+              -destination "generic/platform=iOS" \
+              -derivedDataPath DerivedData \
+              CODE_SIGNING_ALLOWED=NO
+            cd DerivedData/Build/Products/Debug-iphoneos
+            mkdir Payload
+            cp -r WebDriverAgentRunner-Runner.app Payload/
+            zip -r WDA.ipa Payload
+        - uses: actions/upload-artifact@v4
+          with:
+            name: WDA-iOS26
+            path: DerivedData/Build/Products/Debug-iphoneos/WDA.ipa
